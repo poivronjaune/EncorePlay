@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EncorePlay — Fountain Script Viewer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>EncorePlay</h1>
+      <p class="subtitle">Load a Fountain script and inspect the parsed play structure.</p>
+    </div>
+    <div class="header-actions">
+      <button id="select-role-btn" class="role-selector unselected" title="Select the character you will play">
+        <span class="role-icon">&#128100;</span>
+        <span id="role-label">Select your character</span>
+      </button>
+      <button id="config-btn" class="icon-button config-button" title="Configuration">&#9881;</button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Script details</span>
+        <button id="collapse-btn" class="icon-button" title="Collapse panel">&laquo;</button>
+      </div>
+
+      <div class="sidebar-content">
+        <section id="upload-section" class="card">
+          <label for="file-input" class="upload-button">
+            Choose Fountain file&hellip;
+          </label>
+          <input type="file" id="file-input" accept=".fountain,.txt" hidden />
+          <span id="file-name" class="file-name">No file selected</span>
+          <div id="status" class="status"></div>
+        </section>
+
+        <section id="results" hidden>
+          <section class="card">
+            <h2 id="play-title">&mdash;</h2>
+            <p id="play-author" class="subtitle"></p>
+          </section>
+
+          <section class="card">
+            <details open>
+              <summary><h2>Statistics</h2></summary>
+              <div id="stats-grid" class="stats-grid"></div>
+            </details>
+          </section>
+
+          <section class="card">
+            <details open>
+              <summary>
+                <h2>Characters</h2>
+                <span id="role-filters" class="role-filters">
+                  <label><input type="checkbox" data-role="main" checked /> Main</label>
+                  <label><input type="checkbox" data-role="supporting" checked /> Supporting</label>
+                  <label><input type="checkbox" data-role="minor" /> Minor</label>
+                </span>
+              </summary>
+              <table id="characters-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Lines</th>
+                    <th>Language</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </details>
+          </section>
+
+          <section class="card">
+            <details open>
+              <summary><h2>Locations</h2></summary>
+              <table id="locations-table">
+                <thead>
+                  <tr>
+                    <th>Location</th>
+                    <th>Setting</th>
+                    <th>Scene count</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </details>
+          </section>
+
+          <section class="card">
+            <details>
+              <summary><span class="summary-title">Raw JSON</span></summary>
+              <pre id="raw-json"></pre>
+            </details>
+          </section>
+        </section>
+      </div>
+    </aside>
+
+    <div id="resizer" class="resizer" title="Drag to resize"></div>
+
+    <main id="script-panel" class="script-panel">
+      <button id="expand-btn" class="icon-button expand-btn" hidden title="Show stats panel">&raquo;</button>
+
+      <div id="preview-toolbar" class="preview-toolbar" hidden>
+        <button id="prev-line-btn" class="icon-button" title="Previous line">&#8593;</button>
+        <span id="line-nav-count" class="line-nav-count">0 / 0</span>
+        <button id="next-line-btn" class="icon-button" title="Next line">&#8595;</button>
+        <button id="mic-btn" class="icon-button mic-btn" title="Listen and auto-advance when you say your line">&#127908;</button>
+        <span id="mic-hint" class="mic-hint" hidden></span>
+      </div>
+
+      <div id="mic-transcript" class="mic-transcript" hidden>
+        <div id="mic-transcript-header" class="mic-transcript-header">Voice recognition</div>
+        <div class="mic-transcript-body">
+          <p id="mic-transcript-text" class="mic-transcript-text">&mdash;</p>
+          <div class="mic-accuracy">
+            <div class="mic-accuracy-bar"><div id="mic-accuracy-fill" class="mic-accuracy-fill"></div></div>
+            <span id="mic-accuracy-label" class="mic-accuracy-label">0%</span>
+          </div>
+          <div class="mic-transcript-controls">
+            <label class="mic-autojump-label">
+              <input type="checkbox" id="mic-autojump-checkbox" /> Auto-jump to next line
+            </label>
+            <button id="mic-clear-btn" class="mic-clear-btn">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="script-view" class="script-view">
+        <p class="placeholder">Load a Fountain file to see the script here.</p>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="config-dialog" class="config-dialog">
+    <h2>Configuration</h2>
+    <p class="subtitle">Settings will live here in a future update.</p>
+
+    <label for="mic-lang-select" class="field-label">Speech recognition language</label>
+    <select id="mic-lang-select" class="field-select">
+      <option value="fr-FR">French (France)</option>
+      <option value="en-US">English (US)</option>
+      <option value="en-GB">English (UK)</option>
+      <option value="es-ES">Spanish (Spain)</option>
+      <option value="es-MX">Spanish (Mexico)</option>
+      <option value="de-DE">German</option>
+      <option value="it-IT">Italian</option>
+      <option value="pt-BR">Portuguese (Brazil)</option>
+      <option value="pt-PT">Portuguese (Portugal)</option>
+      <option value="nl-NL">Dutch</option>
+      <option value="ja-JP">Japanese</option>
+      <option value="zh-CN">Chinese (Mandarin)</option>
+    </select>
+    <p class="subtitle field-hint">Used for the microphone line-detection feature, independent of your browser's language.</p>
+
+    <div class="dialog-actions">
+      <button id="config-ok-btn" class="upload-button">OK</button>
+    </div>
+  </dialog>
+
+  <dialog id="character-dialog" class="config-dialog character-dialog">
+    <h2>Select your character</h2>
+    <p class="subtitle">Choose the role you will rehearse.</p>
+    <ul id="character-list" class="character-list"></ul>
+    <div class="dialog-actions">
+      <button id="character-cancel-btn" class="upload-button">Cancel</button>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+</html>
+
