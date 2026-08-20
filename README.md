@@ -3,6 +3,8 @@
 Backend for a theatre rehearsal practice tool: imports **Fountain** screenplay/play
 files and converts them into a structured JSON `Play` document (title, acts, scenes,
 characters, dialogue and stage directions) via a small FastAPI service.
+  
+> Disclosure: AI Assisted coding  
 
 ## Summary — what is actually implemented
 
