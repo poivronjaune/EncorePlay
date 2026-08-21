@@ -1,0 +1,142 @@
+Title: THE PROPOSAL
+Credit: Written by
+Author: Anton Chekhov
+Draft date: 1889
+Format: Play
+
+# ACT I
+
+[[SCENE: A room in CHUBUKOV's house.]]
+
+.INT. DRAWING ROOM - DAY
+
+CHUBUKOV enters, wearing a dress-jacket and white gloves. LOMOV enters after him, in a dress-suit and white gloves.
+
+CHUBUKOV
+(going to meet him)
+My dear fellow, whom do I see? Ivan Vassilevitch! I am extremely glad!
+
+He squeezes his hand.
+
+CHUBUKOV (CONT'D)
+Now this is a surprise, my boy... How are you?
+
+LOMOV
+Thank you. And how may you be getting on?
+
+CHUBUKOV
+We just get along somehow, my angel, thanks to your prayers, and so on. Sit down, please do... Now, you know, you shouldn't forget your neighbors, my darling. But why are you so formal in your get-up? Evening dress, gloves, and so on. Are you going anywhere, my treasure?
+
+LOMOV
+No, I've come only to see you, honored Stepan Stepanovitch.
+
+CHUBUKOV
+Then why are you in evening dress, my precious? As if you're paying a New Year's Eve visit!
+
+LOMOV
+Well, you see, it's like this. 
+(takes his arm)
+I've come to you, honored Stepan Stepanovitch, to trouble you with a request. Not once or twice have I already had theHere are a few options for finding and working with complete `.fountain` files.
+
+### 1. Directly Downloadable Fountain Files
+
+*   **Official Spec Sample File (*Big Fish*):** 
+    The creators of Fountain provide John August’s full feature-length screenplay for *Big Fish*.
+    * [Download Big_Fish.fountain directly](https://fountain.io/Big_Fish.fountain)
+*   **Fountain Parser Test Suite Sample:** 
+    The official developer repository for the Fountain syntax parser hosts a short sample scene directly in raw plain text.
+    * [Download test.fountain directly from GitHub](https://raw.githubusercontent.com/nyousefi/Fountain/master/FountainTests/test.fountain)
+
+---
+
+### 2. Ready-to-Save Public Domain Stage Play
+
+If you need a complete theatrical stage play in Fountain syntax right away, copy the block below and save it as a text file with the `.fountain` extension (e.g., `the_proposal.fountain`). It contains Act I of Anton Chekhov’s public-domain stage comedy *The Proposal*:
+
+```fountain
+Title: THE PROPOSAL
+Credit: Written by
+Author: Anton Chekhov
+Draft date: 1889
+Format: Stageplay
+
+# ACT I
+
+[[SCENE: A room in CHUBUKOV's house.]]
+
+.INT. DRAWING ROOM - DAY
+
+CHUBUKOV enters, wearing a dress-jacket and white gloves. LOMOV enters after him, in a dress-suit and white gloves.
+
+CHUBUKOV
+(going to meet him)
+My dear fellow, whom do I see? Ivan Vassilevitch! I am extremely glad!
+
+He squeezes his hand.
+
+CHUBUKOV (CONT'D)
+Now this is a surprise, my boy... How are you?
+
+LOMOV
+Thank you. And how may you be getting on?
+
+CHUBUKOV
+We just get along somehow, my angel, thanks to your prayers, and so on. Sit down, please do... Now, you know, you shouldn't forget your neighbors, my darling. But why are you so formal in your get-up? Evening dress, gloves, and so on. Are you going anywhere, my treasure?
+
+LOMOV
+No, I've come only to see you, honored Stepan Stepanovitch.
+
+CHUBUKOV
+Then why are you in evening dress, my precious? As if you're paying a New Year's Eve visit!
+
+LOMOV
+Well, you see, it's like this. 
+(takes his arm)
+I've come to you, honored Stepan Stepanovitch, to trouble you withHere are direct ways to get pre-written, complete plays in Fountain format without searching through general screenplay databases.
+
+---
+
+### Option 1: Direct Raw Fountain Plays (Ready to Copy/Save)
+
+Below is a complete, public-domain stage play adapted directly into standard **Fountain syntax**. You can copy the block below and save it as a plain-text file named `the_proposal.fountain`:
+
+```fountain
+Title: THE PROPOSAL
+Credit: Adapted from the stage play by
+Author: Anton Chekhov
+Format: Stageplay
+Draft date: 1889
+
+# ACT I
+
+[[SCENE: The drawing room in Stepan Chubukov's country house.]]
+
+.INT. CHUBUKOV'S DRAWING ROOM - DAY
+
+CHUBUKOV enters in formal dress, wearing white gloves. LOMOV follows shortly behind him, also dressed in formal attire.
+
+CHUBUKOV
+(going to meet him)
+My dear fellow, whom do I see? Ivan Vassilevitch! I am extremely glad!
+
+He squeezes Lomov's hand.
+
+CHUBUKOV (CONT'D)
+Now this is a surprise, my boy... How are you?
+
+LOMOV
+Thank you. And how may you be getting on?
+
+CHUBUKOV
+We just get along somehow, my angel, thanks to your prayers, and so on. Sit down, please do... Now, you shouldn't forget your neighbors, my darling. But why are you so formal in your get-up? Evening dress, gloves, and so on. Are you going anywhere, my treasure?
+
+LOMOV
+No, I've come only to see you, honored Stepan Stepanovitch.
+
+CHUBUKOV
+Then why are you in evening dress, my precious? As if you're paying a New Year's Eve visit!
+
+LOMOV
+Well, you see, it's like this. 
+(takes his arm)
+I've come to you, honored Stepan Stepanovitch, to trouble you withNormally I can help with things like this, but I don't seem to have access to that content. You can try again or ask me for something else.
