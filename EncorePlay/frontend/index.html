@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -30,10 +30,15 @@
 
       <div class="sidebar-content">
         <section id="upload-section" class="card">
-          <label for="file-input" class="upload-button">
-            Choose Fountain file&hellip;
-          </label>
-          <input type="file" id="file-input" accept=".fountain,.txt" hidden />
+          <div class="upload-actions">
+            <label for="file-input" id="upload-label" class="upload-button">
+              Upload Fountain file&hellip;
+            </label>
+            <input type="file" id="file-input" accept=".fountain,.txt" hidden />
+            <button id="open-btn" class="upload-button open-button" type="button">
+              Open existing file&hellip;
+            </button>
+          </div>
           <span id="file-name" class="file-name">No file selected</span>
           <div id="status" class="status"></div>
         </section>
@@ -107,6 +112,7 @@
       <button id="expand-btn" class="icon-button expand-btn" hidden title="Show stats panel">&raquo;</button>
 
       <div id="preview-toolbar" class="preview-toolbar" hidden>
+        <span id="toolbar-select-hint" class="toolbar-select-hint">Select your character</span>
         <button id="prev-line-btn" class="icon-button" title="Previous line">&#8593;</button>
         <span id="line-nav-count" class="line-nav-count">0 / 0</span>
         <button id="next-line-btn" class="icon-button" title="Next line">&#8595;</button>
@@ -115,18 +121,35 @@
       </div>
 
       <div id="mic-transcript" class="mic-transcript" hidden>
-        <div id="mic-transcript-header" class="mic-transcript-header">Voice recognition</div>
+        <div id="mic-transcript-header" class="mic-transcript-header">
+          <span>Voice recognition</span>
+          <span class="mic-transcript-header-right">
+            <span id="mic-lang-indicator" class="mic-lang-indicator" title="Click to toggle French/English">fr-FR</span>
+            <button id="mic-transcript-close-btn" class="mic-transcript-close-btn" title="Stop listening and close">&#10005;</button>
+          </span>
+        </div>
         <div class="mic-transcript-body">
-          <p id="mic-transcript-text" class="mic-transcript-text">&mdash;</p>
-          <div class="mic-accuracy">
-            <div class="mic-accuracy-bar"><div id="mic-accuracy-fill" class="mic-accuracy-fill"></div></div>
-            <span id="mic-accuracy-label" class="mic-accuracy-label">0%</span>
+          <div class="mic-transcript-scroll">
+            <div class="mic-transcript-section">
+              <span class="mic-section-label">Recognized</span>
+              <p id="mic-transcript-text" class="mic-transcript-text">&mdash;</p>
+            </div>
           </div>
-          <div class="mic-transcript-controls">
-            <label class="mic-autojump-label">
-              <input type="checkbox" id="mic-autojump-checkbox" /> Auto-jump to next line
-            </label>
-            <button id="mic-clear-btn" class="mic-clear-btn">Clear</button>
+          <div class="mic-transcript-footer">
+            <div class="mic-transcript-section">
+              <span class="mic-section-label">Live detection</span>
+              <p id="mic-live-text" class="mic-live-text">&hellip;</p>
+            </div>
+            <div class="mic-accuracy">
+              <div class="mic-accuracy-bar"><div id="mic-accuracy-fill" class="mic-accuracy-fill"></div></div>
+              <span id="mic-accuracy-label" class="mic-accuracy-label">0%</span>
+            </div>
+            <div class="mic-transcript-controls">
+              <label class="mic-autojump-label">
+                <input type="checkbox" id="mic-autojump-checkbox" /> Auto-jump to next line
+              </label>
+              <button id="mic-clear-btn" class="mic-clear-btn">Clear</button>
+            </div>
           </div>
         </div>
       </div>
@@ -145,16 +168,6 @@
     <select id="mic-lang-select" class="field-select">
       <option value="fr-FR">French (France)</option>
       <option value="en-US">English (US)</option>
-      <option value="en-GB">English (UK)</option>
-      <option value="es-ES">Spanish (Spain)</option>
-      <option value="es-MX">Spanish (Mexico)</option>
-      <option value="de-DE">German</option>
-      <option value="it-IT">Italian</option>
-      <option value="pt-BR">Portuguese (Brazil)</option>
-      <option value="pt-PT">Portuguese (Portugal)</option>
-      <option value="nl-NL">Dutch</option>
-      <option value="ja-JP">Japanese</option>
-      <option value="zh-CN">Chinese (Mandarin)</option>
     </select>
     <p class="subtitle field-hint">Used for the microphone line-detection feature, independent of your browser's language.</p>
 
@@ -169,6 +182,16 @@
     <ul id="character-list" class="character-list"></ul>
     <div class="dialog-actions">
       <button id="character-cancel-btn" class="upload-button">Cancel</button>
+    </div>
+  </dialog>
+
+  <dialog id="open-dialog" class="config-dialog character-dialog">
+    <h2>Open a saved script</h2>
+    <p class="subtitle">Choose a Fountain file from Plays/fountain.</p>
+    <input type="text" id="open-search-input" class="field-select" placeholder="Filter by filename…" autocomplete="off" />
+    <ul id="open-file-list" class="character-list"></ul>
+    <div class="dialog-actions">
+      <button id="open-cancel-btn" class="upload-button">Cancel</button>
     </div>
   </dialog>
 
