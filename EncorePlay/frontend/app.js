@@ -1,6 +1,13 @@
-﻿const fileInput = document.getElementById("file-input");
+const fileInput = document.getElementById("file-input");
 const fileNameEl = document.getElementById("file-name");
 const statusEl = document.getElementById("status");
+const uploadSectionEl = document.getElementById("upload-section");
+const uploadLabelEl = document.getElementById("upload-label");
+const openBtn = document.getElementById("open-btn");
+const openDialog = document.getElementById("open-dialog");
+const openFileListEl = document.getElementById("open-file-list");
+const openSearchInput = document.getElementById("open-search-input");
+const openCancelBtn = document.getElementById("open-cancel-btn");
 const resultsEl = document.getElementById("results");
 const playTitleEl = document.getElementById("play-title");
 const playAuthorEl = document.getElementById("play-author");
@@ -19,12 +26,14 @@ const configBtn = document.getElementById("config-btn");
 const configDialog = document.getElementById("config-dialog");
 const configOkBtn = document.getElementById("config-ok-btn");
 const micLangSelect = document.getElementById("mic-lang-select");
+const micLangIndicatorEl = document.getElementById("mic-lang-indicator");
 const roleSelectorBtn = document.getElementById("select-role-btn");
 const roleLabelEl = document.getElementById("role-label");
 const characterDialog = document.getElementById("character-dialog");
 const characterListEl = document.getElementById("character-list");
 const characterCancelBtn = document.getElementById("character-cancel-btn");
 const previewToolbarEl = document.getElementById("preview-toolbar");
+const toolbarSelectHintEl = document.getElementById("toolbar-select-hint");
 const prevLineBtn = document.getElementById("prev-line-btn");
 const nextLineBtn = document.getElementById("next-line-btn");
 const lineNavCountEl = document.getElementById("line-nav-count");
@@ -33,15 +42,33 @@ const micHintEl = document.getElementById("mic-hint");
 const micTranscriptEl = document.getElementById("mic-transcript");
 const micTranscriptHeaderEl = document.getElementById("mic-transcript-header");
 const micTranscriptTextEl = document.getElementById("mic-transcript-text");
+const micLiveTextEl = document.getElementById("mic-live-text");
 const micAccuracyFillEl = document.getElementById("mic-accuracy-fill");
 const micAccuracyLabelEl = document.getElementById("mic-accuracy-label");
 const micClearBtn = document.getElementById("mic-clear-btn");
 const micAutoJumpCheckbox = document.getElementById("mic-autojump-checkbox");
+const micTranscriptCloseBtn = document.getElementById("mic-transcript-close-btn");
 
 configBtn.addEventListener("click", () => configDialog.showModal());
 configOkBtn.addEventListener("click", () => configDialog.close());
 
 micClearBtn.addEventListener("click", () => resetTranscriptDisplay());
+
+// Stop propagation so clicking the close button doesn't also start a header drag.
+micTranscriptCloseBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
+micTranscriptCloseBtn.addEventListener("click", () => stopListening());
+
+// Clicking the language badge toggles French/English, restarting recognition
+// immediately if it's already listening so the new language takes effect right away.
+micLangIndicatorEl.addEventListener("pointerdown", (event) => event.stopPropagation());
+micLangIndicatorEl.addEventListener("click", () => {
+  micLangSelect.value = micLangSelect.value === "fr-FR" ? "en-US" : "fr-FR";
+  updateMicLangIndicator();
+  if (listening) {
+    stopListening();
+    startListening();
+  }
+});
 
 // Dragging the floating transcript window by its header (same pointer-capture
 // pattern as the sidebar resizer, so it keeps tracking even if the cursor moves fast).
@@ -93,11 +120,12 @@ function refreshLineNav() {
 
 function updateLineNavUI() {
   const hasLines = currentMineLines.length > 0;
-  previewToolbarEl.hidden = !hasLines;
-  if (!hasLines) return;
+  previewToolbarEl.hidden = !currentPlay; // visible as soon as a play is loaded, even with no character chosen yet
+  toolbarSelectHintEl.hidden = hasLines;
   lineNavCountEl.textContent = (currentMineIndex < 0 ? 0 : currentMineIndex + 1) + " / " + currentMineLines.length;
-  prevLineBtn.disabled = currentMineIndex <= 0;
-  nextLineBtn.disabled = currentMineIndex >= currentMineLines.length - 1;
+  prevLineBtn.disabled = !hasLines || currentMineIndex <= 0;
+  nextLineBtn.disabled = !hasLines || currentMineIndex >= currentMineLines.length - 1;
+  micBtn.disabled = !hasLines;
 }
 
 function goToLine(index) {
@@ -120,6 +148,9 @@ let micStream = null;
 let audioContext = null;
 let levelAnimationId = null;
 let finalizedTranscript = ""; // accumulates all finalized speech for the current line only
+let displayedWords = []; // words currently shown in the transcript window
+let revealQueue = []; // words waiting to be revealed one at a time
+let revealTimerId = null;
 
 micBtn.addEventListener("click", () => {
   if (!SpeechRecognitionCtor) {
@@ -141,6 +172,10 @@ function startListening() {
   recognition.onresult = (event) => {
     const lastResult = event.results[event.results.length - 1];
     const transcript = lastResult[0].transcript;
+
+    // Raw, unsmoothed view of exactly what the recognizer is producing right now —
+    // this one is allowed to flicker/revise, since it's clearly labeled as "live".
+    showLiveDetection(transcript, lastResult.isFinal);
 
     if (lastResult.isFinal) {
       // Keep everything spoken so far for this line, even across pauses that the
@@ -247,12 +282,73 @@ function stopAudioLevelMeter() {
 function showTranscript(text) {
   const trimmed = text.trim();
   if (!trimmed) return; // keep the previous line's text visible during brief silent gaps
-  micTranscriptTextEl.textContent = "\u201c" + trimmed + "\u201d";
+
+  const targetWords = trimmed.split(/\s+/);
+  // Compare loosely (case/trailing punctuation ignored): finalized results often tweak
+  // capitalization or add punctuation vs. the interim words already on screen, and an
+  // exact-match check would wrongly treat that as a "revision" and snap the whole
+  // sentence in at once instead of smoothly continuing the word-by-word reveal.
+  const isExtension =
+    targetWords.length >= displayedWords.length &&
+    displayedWords.every((w, i) => _looseWordEq(w, targetWords[i]));
+
+  if (isExtension) {
+    // Only new words were added since last time: reveal them one at a time instead
+    // of jumping straight to the full (possibly multi-word) recognizer update.
+    enqueueWords(targetWords.slice(displayedWords.length));
+  } else {
+    // The recognizer revised earlier words (rare) — snap directly, animating a
+    // correction would look worse than the flash we're trying to avoid.
+    cancelWordReveal();
+    displayedWords = targetWords;
+    renderDisplayedWords();
+  }
+}
+
+function _looseWordEq(a, b) {
+  const strip = (w) => w.toLowerCase().replace(/[.,!?;:"'…]+$/, "");
+  return strip(a) === strip(b);
+}
+
+function enqueueWords(words) {
+  revealQueue.push(...words);
+  if (revealTimerId === null) revealNextWord();
+}
+
+function revealNextWord() {
+  if (!revealQueue.length) {
+    revealTimerId = null;
+    return;
+  }
+  displayedWords.push(revealQueue.shift());
+  renderDisplayedWords();
+  revealTimerId = setTimeout(revealNextWord, 70);
+}
+
+function renderDisplayedWords() {
+  micTranscriptTextEl.textContent = "\u201c" + displayedWords.join(" ") + "\u201d";
+}
+
+function cancelWordReveal() {
+  if (revealTimerId !== null) {
+    clearTimeout(revealTimerId);
+    revealTimerId = null;
+  }
+  revealQueue = [];
+}
+
+function showLiveDetection(text, isFinal) {
+  micLiveTextEl.textContent = text.trim() || "\u2026";
+  micLiveTextEl.classList.toggle("mic-live-final", isFinal);
 }
 
 function resetTranscriptDisplay() {
   finalizedTranscript = "";
+  cancelWordReveal();
+  displayedWords = [];
   micTranscriptTextEl.textContent = "\u2026";
+  micLiveTextEl.textContent = "\u2026";
+  micLiveTextEl.classList.remove("mic-live-final");
   micAccuracyFillEl.style.width = "0%";
   micAccuracyFillEl.style.background = "var(--accent)";
   micAccuracyLabelEl.textContent = "0%";
@@ -267,7 +363,8 @@ function updateAccuracyDisplay(transcript) {
   const { overlap } = computeMatch(transcript, targetEl.textContent);
   const percent = Math.round(overlap * 100);
   micAccuracyFillEl.style.width = percent + "%";
-  micAccuracyFillEl.style.background = percent >= 70 ? "var(--main)" : percent >= 40 ? "var(--accent)" : "#ef4444";
+  // Green only at a perfect match now that advancing requires 100% accuracy.
+  micAccuracyFillEl.style.background = percent >= 100 ? "var(--main)" : percent >= 60 ? "var(--accent)" : "#ef4444";
   micAccuracyLabelEl.textContent = percent + "%";
 }
 
@@ -278,7 +375,15 @@ function seedMicLanguageFromCharacter(character) {
   if (!character || !character.lang) return;
   const hasOption = Array.from(micLangSelect.options).some((opt) => opt.value === character.lang);
   if (hasOption) micLangSelect.value = character.lang;
+  updateMicLangIndicator();
 }
+
+function updateMicLangIndicator() {
+  micLangIndicatorEl.textContent = micLangSelect.value;
+}
+
+micLangSelect.addEventListener("change", updateMicLangIndicator);
+updateMicLangIndicator();
 
 function checkSpokenLine(transcript) {
   const index = currentMineIndex < 0 ? 0 : currentMineIndex;
@@ -287,9 +392,9 @@ function checkSpokenLine(transcript) {
 
   const { overlap, coverage } = computeMatch(transcript, targetEl.textContent);
 
-  // Require both good word overlap AND that roughly the whole line's length was
-  // spoken, not just its first few words, so it waits until the line is finished.
-  if (overlap < 0.7 || coverage < 0.7) return;
+  // Require every word of the line to be matched (100% overlap) and fully spoken,
+  // not just a close-enough match, before advancing.
+  if (overlap < 1 || coverage < 1) return;
 
   if (!micAutoJumpCheckbox.checked) {
     showMicHint("Matched! (auto-jump off)", false);
@@ -432,7 +537,7 @@ fileInput.addEventListener("change", async () => {
 
   fileNameEl.textContent = file.name;
   resultsEl.hidden = true;
-  setStatus("Parsing " + file.name + "…", "loading");
+  setStatus("Uploading " + file.name + "…", "loading");
 
   try {
     const formData = new FormData();
@@ -453,8 +558,88 @@ fileInput.addEventListener("change", async () => {
     renderPlay(play);
   } catch (err) {
     setStatus("Error: " + err.message, "error");
+  } finally {
+    fileInput.value = ""; // allow re-selecting the same file name after an error
   }
 });
+
+openBtn.addEventListener("click", async () => {
+  await renderOpenDialog();
+  openDialog.showModal();
+  openSearchInput.focus();
+});
+
+openCancelBtn.addEventListener("click", () => openDialog.close());
+openSearchInput.addEventListener("input", () => renderFileList(openFiles));
+
+let openFiles = [];
+
+async function renderOpenDialog() {
+  openSearchInput.value = "";
+  openFileListEl.innerHTML = '<li class="character-empty">Loading…</li>';
+  try {
+    const response = await fetch("/api/plays/list");
+    if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+    openFiles = await response.json();
+    renderFileList(openFiles);
+  } catch (err) {
+    openFileListEl.innerHTML = `<li class="character-empty">Error: ${escapeHtml(err.message)}</li>`;
+  }
+}
+
+function renderFileList(files) {
+  if (!files.length) {
+    openFileListEl.innerHTML = '<li class="character-empty">No saved scripts in Plays/fountain yet.</li>';
+    return;
+  }
+
+  const query = openSearchInput.value.trim().toLowerCase();
+  const filtered = query ? files.filter((f) => f.name.toLowerCase().includes(query)) : files;
+
+  if (!filtered.length) {
+    openFileListEl.innerHTML = '<li class="character-empty">No files match your search.</li>';
+    return;
+  }
+
+  openFileListEl.innerHTML = filtered
+    .map(
+      (f) => `
+        <li class="file-option" data-name="${escapeHtml(f.name)}">
+          <span class="name">${escapeHtml(f.name)}</span>
+          <span class="file-size">${formatFileSize(f.size_bytes)}</span>
+        </li>`
+    )
+    .join("");
+
+  openFileListEl.querySelectorAll(".file-option").forEach((el) => {
+    el.addEventListener("click", () => openSavedFile(el.dataset.name));
+  });
+}
+
+async function openSavedFile(name) {
+  resultsEl.hidden = true;
+  setStatus("Opening " + name + "…", "loading");
+  try {
+    const response = await fetch("/api/plays/open?name=" + encodeURIComponent(name));
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.detail || `Request failed with status ${response.status}`);
+    }
+    const play = await response.json();
+    fileNameEl.textContent = name;
+    setStatus("", "");
+    renderPlay(play);
+  } catch (err) {
+    setStatus("Error: " + err.message, "error");
+  } finally {
+    openDialog.close();
+  }
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  return (bytes / 1024).toFixed(1) + " KB";
+}
 
 function setStatus(message, kind) {
   statusEl.textContent = message;
@@ -666,3 +851,21 @@ function escapeHtml(value) {
   div.textContent = value == null ? "" : String(value);
   return div.innerHTML;
 }
+
+// If file upload is disabled server-side, hide only the upload control — the
+// "Open existing file" picker keeps working regardless (it doesn't add new content).
+(async function initUploadMode() {
+  let fileUploadAllowed = true;
+  try {
+    const response = await fetch("/api/config");
+    if (response.ok) {
+      fileUploadAllowed = (await response.json()).file_upload_allowed;
+    }
+  } catch {
+    // Fail open: keep the upload UI if the config endpoint is unreachable.
+  }
+
+  if (!fileUploadAllowed) {
+    uploadLabelEl.hidden = true;
+  }
+})();
