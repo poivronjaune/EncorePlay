@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg: #0f1115;
   --card-bg: #1a1d24;
   --border: #2a2e37;
@@ -162,6 +162,15 @@ header h1 {
   background: var(--card-bg);
 }
 
+.icon-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.icon-button:disabled:hover {
+  background: none;
+}
+
 .resizer {
   flex: 0 0 auto;
   width: 6px;
@@ -218,6 +227,19 @@ header h1 {
   font-size: 0.75rem;
   min-width: 36px;
   text-align: center;
+}
+
+.toolbar-select-hint {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+  max-width: 70px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar-select-hint[hidden] {
+  display: none;
 }
 
 .mic-btn {
@@ -279,6 +301,10 @@ header h1 {
 
 .mic-transcript-header {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 6px 10px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -290,14 +316,67 @@ header h1 {
   user-select: none;
 }
 
+.mic-lang-indicator {
+  font-weight: 700;
+  font-size: 0.65rem;
+  color: var(--accent);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.mic-lang-indicator:hover {
+  background: var(--border);
+}
+
+.mic-transcript-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mic-transcript-close-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.mic-transcript-close-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
 .mic-transcript-body {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: hidden; /* the scroll/footer children below manage their own overflow */
+}
+
+.mic-transcript-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.mic-transcript-footer {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 
 .mic-transcript-text {
@@ -306,6 +385,32 @@ header h1 {
   font-style: italic;
   color: var(--text);
   word-break: break-word;
+}
+
+.mic-transcript-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mic-section-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.mic-live-text {
+  margin: 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.mic-live-text.mic-live-final {
+  color: var(--accent);
 }
 
 .mic-accuracy {
@@ -524,10 +629,30 @@ details > *:not(summary) {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  border: none;
+  font-size: 0.9rem;
 }
 
 .upload-button:hover {
   filter: brightness(1.1);
+}
+
+.upload-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.open-button {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.open-button:hover {
+  background: var(--bg);
+  filter: none;
 }
 
 .file-name {
@@ -690,6 +815,10 @@ pre#raw-json {
   width: 420px;
 }
 
+#open-search-input {
+  margin-top: 12px;
+}
+
 .character-list {
   list-style: none;
   margin: 12px 0 0;
@@ -724,6 +853,27 @@ pre#raw-json {
 
 .character-option .name {
   font-weight: 600;
+}
+
+.file-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--bg);
+}
+
+.file-option:hover {
+  border-color: var(--accent);
+}
+
+.file-option .file-size {
+  color: var(--muted);
+  font-size: 0.75rem;
 }
 
 .character-empty {
